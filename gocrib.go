@@ -24,10 +24,11 @@ func xor(a, b []byte) []byte {
     return c
 }
 
-func crib(a [][]byte, key []byte, c string) string {
+func crib(a [][]byte, key []byte, alphabet string) string {
     key = key[:len(key)-1]
     var res string = ""
     if len(a[0]) <= len(key) {
+        // if we already know the key
         res = "DONE!\n"
         key = key[:len(a[0])]
         for _, b := range a {
@@ -36,15 +37,20 @@ func crib(a [][]byte, key []byte, c string) string {
         }
         return res
     }
-    for _, k := range c {
+
+    // try each character in the alphabet
+    for _, k := range alphabet {
         var z bool = false
+        // check if it's meaningful for each ciphertexts
         for _, b := range a {
             z = z || !xorTest(b[len(key)], byte(k))
         }
+        // otherwise skip the character
         if z {
             continue
         }
 
+        // append the results
         res += fmt.Sprintf("\n= %c =\n", k)
         for _, b := range a {
             r := xor(b[:len(key)+1], append(key, byte(k)))
@@ -60,7 +66,9 @@ func main() {
     fmt.Scanf("%s", &keyAlphabet)
 
     cipherTexts := make([][]byte, 0)
-    for ;; {
+
+    // take ciphertexts, exit on empty string
+    for {
         fmt.Print("Enter ciphertext: ")
         var t string
         fmt.Scanf("%s", &t)
@@ -85,9 +93,10 @@ func main() {
 
 	g.SetManagerFunc(layout)
 
+    // text update function
     go func() {
         var tmp string
-        for ;; {
+        for {
             resView, err := g.View("results")
             if err != nil {
                 continue
@@ -97,7 +106,7 @@ func main() {
                 continue
             }
             in := inputView.Buffer()
-            if in != tmp {
+            if in != tmp { // only on text change
                 resView.Clear()
                 time.Sleep(100 * time.Millisecond)
                 fmt.Fprintf(resView, "%s", crib(cipherTexts, []byte(in), keyAlphabet))
@@ -107,6 +116,7 @@ func main() {
         }
     }()
 
+// Gui setup
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		log.Panicln(err)
 	}
@@ -140,6 +150,8 @@ func main() {
 	}
 }
 
+// Layout
+
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
     if v, err := g.SetView("results", 0, 0, maxX-1, maxY-7); err != nil {
@@ -165,17 +177,6 @@ func layout(g *gocui.Gui) error {
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
-    // TODO
-    resView, err := g.View("results")
-    if err != nil {
-        return err
-    }
-    inputView, err := g.View("fast")
-    if err != nil {
-        return err
-    }
-    log.Printf("%s", resView.Buffer())
-    log.Printf("%s", inputView.Buffer())
 	return gocui.ErrQuit
 }
 
