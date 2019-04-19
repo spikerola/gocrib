@@ -8,6 +8,52 @@ import (
     "github.com/jroimartin/gocui"
 )
 
+func xorTest(a, b byte) bool {
+    c := a^b
+    return c >= 20 && c <= 126
+}
+
+func xor(a, b []byte) []byte {
+    if len(a) != len(b) {
+        panic("different lenght")
+    }
+    c := make([]byte, len(a))
+    for i := 0; i < len(a); i++ {
+        c[i] = a[i] ^ b[i]
+    }
+    return c
+}
+
+func crib(a [][]byte, key []byte, c string) string {
+    key = key[:len(key)-1]
+    var res string = ""
+    if len(a[0]) <= len(key) {
+        res = "DONE!\n"
+        key = key[:len(a[0])]
+        for _, b := range a {
+            r := xor(b[:len(key)], key)
+            res += fmt.Sprintf("%s\n", r)
+        }
+        return res
+    }
+    for _, k := range c {
+        var z bool = false
+        for _, b := range a {
+            z = z || !xorTest(b[len(key)], byte(k))
+        }
+        if z {
+            continue
+        }
+
+        res += fmt.Sprintf("\n= %c =\n", k)
+        for _, b := range a {
+            r := xor(b[:len(key)+1], append(key, byte(k)))
+            res += fmt.Sprintf("%s\n", r)
+        }
+    }
+    return res
+}
+
 func main() {
     fmt.Print("Enter key alphabet: ")
     var keyAlphabet string
@@ -54,7 +100,7 @@ func main() {
             if in != tmp {
                 resView.Clear()
                 time.Sleep(100 * time.Millisecond)
-                fmt.Fprintf(resView, "%s\n%s\n%s\n", in, in, in)
+                fmt.Fprintf(resView, "%s", crib(cipherTexts, []byte(in), keyAlphabet))
                 tmp = in
             }
             time.Sleep(100 * time.Millisecond)
