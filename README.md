@@ -10,7 +10,7 @@ you can also load the alphabet as shown in the `input` file and the ciphertexts
 cat input | go run crib.go
 ```
 
-## Dependencies
+### Dependencies
 
 ```
 go get -u github.com/jroimartin/gocui
